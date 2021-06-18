@@ -1,34 +1,28 @@
 ﻿using BepInEx;
 using HarmonyLib;
+using UnityEngine;
 
 namespace OVRManagerPatch
 {
     [BepInPlugin(ModConstants.ModConstants.modGUID, ModConstants.ModConstants.modName, ModConstants.ModConstants.modVersion)]
     public class Main : BaseUnityPlugin
     {
-        public static bool shouldCallFunction = false;
         void Awake()
         {
             HarmonyPatcher.Patch.Apply();
         }
-        private void OnEnable()
-        {
-            shouldCallFunction = false;
-        }
-        private void OnDisable()
-        {
-            shouldCallFunction = true;
-        }
     }
 
-    [HarmonyPatch(typeof(OVRManager))]
-    [HarmonyPatch("Update", MethodType.Normal)]
-    internal class OVRManagerUpdate
+    [HarmonyPatch(typeof(GorillaLocomotion.Player))]
+    [HarmonyPatch("Awake", MethodType.Normal)]
+    internal class PlayerAwake
     {
-        /* OVRManager::Update flooding... */
-        public static bool Prefix()
+        /* Just disable an OVRManager! */
+        /* (Thanks A Haunted Army#2861)! */
+        public static void Postfix()
         {
-            return Main.shouldCallFunction;
+            GameObject OVRManager = GameObject.Find("Photon Manager/oculusvr");
+            if (OVRManager != null) OVRManager.SetActive(false);
         }
     }
 }
